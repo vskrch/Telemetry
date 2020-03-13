@@ -16,10 +16,12 @@ const options = {
     clean: true,
     encoding: 'utf8'
 };
+
+let joystickDataArray= [];
 //const host = '192.168.10.11' // internal UAV- network
 var client = mqtt.connect('mqtt://'+host+':'+port, options);
 client.on('connect', function() { // When connected
-    console.log('connected to mqtt broker'+'on {'+host+'} port '+port);
+    console.log('connected to mqtt broker '+' on {'+host+'} port '+port);
     // subscribe to a topic
    setInterval(() => {
       
@@ -31,20 +33,18 @@ client.on('connect', function() { // When connected
                   setInterval(()=>{
             const json = JSON.stringify(message);
             //console.log(topic.concat(json));
-            console.log("Received Json String: " + json + "' on '" + topic + "'");
+            console.log("Received Raw String: " + json + "' on '" + topic + "'");
             const obj = JSON.parse(json);
             console.log(obj.data);
-            const joystickData = obj.data;
+           // const joystickData = obj.data;
             if(topic == 'joystick/data'){
                 var payload = obj.data;
-               // var payload = message.payloadBytes;
                  var buffer = new ArrayBuffer(48);
                  var byteview = new Uint8Array(buffer);
                  for(var i = 0; i < byteview.length; ++i) {
                    byteview[i] = payload[i];
                  }
-                   //engine_timeout_counter = 0;
-                 //engine_timeout_val     = 0;
+                 
                 
                  var view = new DataView(buffer, 0);
                  
@@ -67,11 +67,13 @@ client.on('connect', function() { // When connected
                  var joystick_button12     = view.getInt16(38, true);
                  var joystick_leftrighthat = view.getFloat32(40, true);
                  var joystick_fwdbackhat   = view.getFloat32(44, true);
-                    console.log(joystick_throttle);
-                    console.log(joystick_button1);
+                 //adding all the variables into an array.
+                  joystickDataArray = [joystick_leftright,joystick_fwdback,joystick_yaw,joystick_throttle,joystick_button1,
+                    joystick_button2,joystick_button3,joystick_button4,joystick_button5,joystick_button6,joystick_button7
+                ,joystick_button8,joystick_button9,joystick_button10,joystick_button11,joystick_button12,joystick_leftrighthat,joystick_fwdbackhat]
                 }
             
-console.log(bind_header(joystickHeader,joystickData));
+  console.log(bind_header(joystickHeader,joystickDataArray));
         },5000);
     }
     catch(err){
@@ -93,7 +95,7 @@ console.log(bind_header(joystickHeader,joystickData));
 ///////////////////
         });
     });
-}, 1000);
+}, 150);
 
     // // publish a message to a topic
     // client.publish('#', 'my message', function() {
@@ -132,59 +134,26 @@ const joystickHeader = [
 ];
 
 //binding function: usage bind_header(array1,array2);
-//@ array1 => keys array
+//@ array1 => keys<-> Headers array
 //@array2 => values from parsed message
 
 bind_header = (array1,array2) => {
-    // var originalData = [1,2,3];
-    // var newData = [3,1,2];
-    // var newOrderObject = originalData.reduce(function(acc, item, i) {
-    //     return Object.assign(acc, { [item]: newData[i] })
-    //   }, {});
-    //   console.log(newOrderObject)
-    // {
-    //     "1": 3,
-    //     "2": 1,
-    //     "3": 2
-    //   }
+
     console.log("\n");
     console.log(array1);
     console.log(array2);
-    const result = array2.reduce(function(acc, item, i){
-        return Object.assign(acc, { [item]: array2[i]})
-    }, {});
-    
 
+    //binding stub
+    const result = {};
+    array1.forEach((element,i) => {
+        result[element] = array2[i];
+        
+    });
+    //
+
+    console.log('Json Pairs for Joystick data after Binding header: \n'+JSON.stringify(result));
+
+    
 };
 
-
 // last debug console message :
-// Received Json String: {"type":"Buffer","data":[0,0,0,0,0,0,0,0,0,0,0,0,0,254,127,63,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}' on 'joystick/data'
-// [
-//   0, 0,   0,   0,  0, 0, 0, 0, 0, 0, 0,
-//   0, 0, 254, 127, 63, 0, 0, 0, 0, 0, 0,
-//   0, 0,   0,   0,  0, 0, 0, 0, 0, 0, 0,
-//   0, 0,   0,   0,  0, 0, 0, 0, 0, 0, 0,
-//   0, 0,   0,   0
-// ]
-
-
-// [
-//   'leftright_cmd',    'fwdback_cmd',
-//   'yaw_cmd',          'thrust_cmd',
-//   'button1',          'button2',
-//   'button3',          'button4',
-//   'button5',          'button6',
-//   'button7',          'button8',
-//   'button9',          'button10',
-//   'button11',         'button12',
-//   'leftrighthat_cmd', 'fwdbackhat_cmd'
-// ]
-// [
-//   0, 0,   0,   0,  0, 0, 0, 0, 0, 0, 0,
-//   0, 0, 254, 127, 63, 0, 0, 0, 0, 0, 0,
-//   0, 0,   0,   0,  0, 0, 0, 0, 0, 0, 0,
-//   0, 0,   0,   0,  0, 0, 0, 0, 0, 0, 0,
-//   0, 0,   0,   0
-// ]
-// undefined
