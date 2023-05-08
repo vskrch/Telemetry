@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "bunyan": "^1.8.12",
-    "mqtt": "^3.0.0"
+    "mqtt": "^4.3.7"
   }
 }
